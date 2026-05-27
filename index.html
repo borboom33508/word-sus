@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="เกมทาย Imposter สำหรับกลุ่มเพื่อน เลือกหมวดหมู่ สุ่มคำ และแจกบทลับให้ผู้เล่น"
+    />
+    <title>Imposter Word Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#game" aria-label="Imposter Word Game">
+          <span class="brand-mark">?</span>
+          <span>Imposter Word</span>
+        </a>
+        <button class="ghost-button" type="button" data-reset>เริ่มใหม่</button>
+      </header>
+
+      <main id="game">
+        <section class="hero" aria-labelledby="hero-title">
+          <div class="hero-copy">
+            <p class="eyebrow">Party web game</p>
+            <h1 id="hero-title">สุ่มคำลับ หา Imposter</h1>
+            <p>
+              แอดมินเลือกจำนวนผู้เล่นและหมวดหมู่ จากนั้นสุ่มคำกลางหนึ่งคำ
+              แล้วส่งเครื่องให้ผู้เล่นแต่ละคนกดดูคำของตัวเองแบบลับๆ
+            </p>
+            <div class="role-deck" aria-hidden="true">
+              <span class="role-card role-card-word">คำลับ</span>
+              <span class="role-card role-card-imposter">Imposter</span>
+              <span class="role-card role-card-player">ผู้เล่น</span>
+            </div>
+          </div>
+
+          <aside class="game-panel" aria-live="polite">
+            <div class="stage-label" data-stage-label>ขั้นตอนที่ 1 จาก 3</div>
+            <h2 data-panel-title>ตั้งค่าเกม</h2>
+            <p data-panel-text>เลือกจำนวนผู้เล่นและหมวดหมู่คำที่อยากเล่น</p>
+            <div class="secret-display" data-secret-display>
+              <span>คำที่สุ่มได้</span>
+              <strong data-secret-word>ยังไม่ได้สุ่ม</strong>
+            </div>
+          </aside>
+        </section>
+
+        <section class="setup-section" data-setup-section>
+          <div class="field-grid">
+            <label>
+              <span>จำนวนผู้เล่น</span>
+              <input
+                type="number"
+                min="2"
+                max="5"
+                value="4"
+                inputmode="numeric"
+                data-player-count
+              />
+            </label>
+            <label>
+              <span>หมวดหมู่</span>
+              <select data-category-select></select>
+            </label>
+          </div>
+
+          <div class="category-preview">
+            <div>
+              <p class="eyebrow">Word Pool</p>
+              <h2 data-category-title>เลือกหมวดหมู่</h2>
+            </div>
+            <div class="word-chips" data-word-preview></div>
+          </div>
+
+          <button class="primary-button wide-button" type="button" data-random-word>
+            สุ่มคำสำหรับรอบนี้
+          </button>
+        </section>
+
+        <section class="reveal-section is-hidden" data-reveal-section>
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Private reveal</p>
+              <h2>ผู้เล่นกดดูคำของตัวเอง</h2>
+            </div>
+            <span data-reveal-progress>0/0 คนดูแล้ว</span>
+          </div>
+
+          <div class="player-grid" data-player-grid></div>
+
+          <div class="finish-panel is-hidden" data-finish-panel>
+            <h2>แจกบทครบแล้ว</h2>
+            <p>
+              ตอนนี้ทุกคนรู้บทของตัวเองแล้ว สามารถเริ่มคุย ถามคำถาม
+              และโหวตหา Imposter ได้เลย
+            </p>
+            <button class="primary-button" type="button" data-reset-bottom>
+              รีเซ็ตเพื่อเล่นรอบใหม่
+            </button>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <template data-player-template>
+      <article class="player-card">
+        <div>
+          <span data-player-label></span>
+          <strong data-player-status>ยังไม่ได้ดู</strong>
+        </div>
+        <button class="secondary-button" type="button" data-reveal-button>
+          ดูคำของฉัน
+        </button>
+      </article>
+    </template>
+
+    <div class="modal-backdrop is-hidden" data-modal aria-hidden="true">
+      <div class="role-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <p class="eyebrow" data-modal-player>ผู้เล่น</p>
+        <h2 id="modal-title">คำของคุณคือ</h2>
+        <strong data-modal-word></strong>
+        <p data-modal-hint>จำคำนี้ไว้ แล้วกดซ่อนก่อนส่งเครื่องให้คนถัดไป</p>
+        <button class="primary-button wide-button" type="button" data-hide-role>
+          ซ่อนคำ
+        </button>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
