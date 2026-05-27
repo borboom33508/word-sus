@@ -76,8 +76,26 @@
             <div>
               <p class="eyebrow">Word Pool</p>
               <h2 data-category-title>เลือกหมวดหมู่</h2>
+              <span data-word-count>0 คำ</span>
             </div>
             <div class="word-chips" data-word-preview></div>
+          </div>
+
+          <div class="custom-word-panel">
+            <label>
+              <span>เพิ่มคำในหมวดนี้</span>
+              <textarea
+                rows="3"
+                placeholder="เช่น นักสืบ, นักเต้น หรือใส่ทีละบรรทัด"
+                data-custom-words
+              ></textarea>
+            </label>
+            <div class="custom-word-actions">
+              <p data-custom-word-message>คำที่เพิ่มหรือลบจะถูกเก็บไว้ในเบราว์เซอร์นี้</p>
+              <button class="secondary-button" type="button" data-add-words>
+                เพิ่มคำ
+              </button>
+            </div>
           </div>
 
           <button class="primary-button wide-button" type="button" data-random-word>

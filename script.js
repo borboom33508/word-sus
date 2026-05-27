@@ -154,16 +154,55 @@ const categories = {
       "สถานีตำรวจ",
     ],
   },
+  animals: {
+    label: "สัตว์",
+    words: [
+      "สุนัข",
+      "แมว",
+      "ช้าง",
+      "เสือ",
+      "สิงโต",
+      "ม้า",
+      "วัว",
+      "หมู",
+      "ไก่",
+      "เป็ด",
+      "กระต่าย",
+      "ลิง",
+      "ยีราฟ",
+      "ม้าลาย",
+      "หมี",
+      "แพนด้า",
+      "จระเข้",
+      "งู",
+      "เต่า",
+      "โลมา",
+      "ฉลาม",
+      "ปลาหมึก",
+      "นกฮูก",
+      "นกแก้ว",
+      "ผีเสื้อ",
+    ],
+  },
 };
+
+const customWordsKey = "wordSusCustomWords";
+const removedDefaultWordsKey = "wordSusRemovedDefaultWords";
+let customWords = loadCustomWords();
+let removedDefaultWords = loadRemovedDefaultWords();
 
 const elements = {
   resetButtons: document.querySelectorAll("[data-reset], [data-reset-bottom]"),
   playerCount: document.querySelector("[data-player-count]"),
   categorySelect: document.querySelector("[data-category-select]"),
   randomWord: document.querySelector("[data-random-word]"),
+  addWords: document.querySelector("[data-add-words]"),
+  customWords: document.querySelector("[data-custom-words]"),
+  customWordMessage: document.querySelector("[data-custom-word-message]"),
   setupSection: document.querySelector("[data-setup-section]"),
   revealSection: document.querySelector("[data-reveal-section]"),
   categoryTitle: document.querySelector("[data-category-title]"),
+  wordCount: document.querySelector("[data-word-count]"),
   wordPreview: document.querySelector("[data-word-preview]"),
   stageLabel: document.querySelector("[data-stage-label]"),
   panelTitle: document.querySelector("[data-panel-title]"),
@@ -207,6 +246,10 @@ function init() {
   });
 
   elements.randomWord.addEventListener("click", startRound);
+  elements.addWords.addEventListener("click", addCustomWords);
+  elements.customWords.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) addCustomWords();
+  });
   elements.hideRole.addEventListener("click", hideRole);
   elements.modal.addEventListener("click", (event) => {
     if (event.target === elements.modal) hideRole();
@@ -223,18 +266,41 @@ function renderCategoryOptions() {
 
 function updateCategoryPreview() {
   const category = categories[state.categoryKey];
+  const words = getWordsForCategory(state.categoryKey);
   elements.categoryTitle.textContent = category.label;
-  elements.wordPreview.innerHTML = category.words
-    .slice(0, 10)
-    .map((word) => `<span>${word}</span>`)
-    .join("");
+  elements.wordCount.textContent = `${words.length.toLocaleString("th-TH")} คำ`;
+  elements.wordPreview.innerHTML = "";
+
+  words.forEach(({ word, source }) => {
+    const chip = document.createElement("span");
+    const label = document.createElement("span");
+    const removeButton = document.createElement("button");
+
+    label.textContent = word;
+    removeButton.type = "button";
+    removeButton.textContent = "×";
+    removeButton.setAttribute("aria-label", `ลบคำ ${word}`);
+    removeButton.addEventListener("click", () => removeWord(state.categoryKey, word, source));
+
+    chip.className = "word-chip";
+    if (source === "custom") chip.classList.add("is-custom");
+    chip.append(label, removeButton);
+    elements.wordPreview.appendChild(chip);
+  });
 }
 
 function startRound() {
   state.playerCount = clampPlayerCount(elements.playerCount.value);
   elements.playerCount.value = state.playerCount;
   state.categoryKey = elements.categorySelect.value;
-  state.secretWord = pickRandom(categories[state.categoryKey].words);
+  const words = getWordsForCategory(state.categoryKey).map((item) => item.word);
+
+  if (!words.length) {
+    setCustomWordMessage("หมวดนี้ยังไม่มีคำให้สุ่ม เพิ่มคำก่อนเริ่มรอบ");
+    return;
+  }
+
+  state.secretWord = pickRandom(words);
   state.imposterIndex = Math.floor(Math.random() * state.playerCount);
   state.revealed = Array.from({ length: state.playerCount }, () => false);
 
@@ -248,6 +314,53 @@ function startRound() {
 
   renderPlayers();
   updateProgress();
+}
+
+function addCustomWords() {
+  const words = parseCustomWords(elements.customWords.value);
+  if (!words.length) {
+    setCustomWordMessage("ใส่คำก่อน แล้วค่อยกดเพิ่ม");
+    return;
+  }
+
+  const categoryKey = elements.categorySelect.value;
+  const existing = new Set(getWordsForCategory(categoryKey).map((item) => normalizeWord(item.word)));
+  const newWords = words.filter((word) => {
+    const normalized = normalizeWord(word);
+    if (existing.has(normalized)) return false;
+    existing.add(normalized);
+    return true;
+  });
+
+  if (!newWords.length) {
+    setCustomWordMessage("คำนี้มีอยู่ในหมวดแล้ว");
+    return;
+  }
+
+  customWords[categoryKey] = [...(customWords[categoryKey] || []), ...newWords];
+  saveCustomWords();
+  elements.customWords.value = "";
+  state.categoryKey = categoryKey;
+  updateCategoryPreview();
+  setCustomWordMessage(`เพิ่ม ${newWords.length.toLocaleString("th-TH")} คำแล้ว`);
+}
+
+function removeWord(categoryKey, word, source) {
+  if (source === "custom") {
+    customWords[categoryKey] = (customWords[categoryKey] || []).filter(
+      (item) => normalizeWord(item) !== normalizeWord(word)
+    );
+    saveCustomWords();
+  } else {
+    removedDefaultWords[categoryKey] = [
+      ...(removedDefaultWords[categoryKey] || []),
+      normalizeWord(word),
+    ];
+    saveRemovedDefaultWords();
+  }
+
+  updateCategoryPreview();
+  setCustomWordMessage(`ลบ "${word}" ออกจากหมวดนี้แล้ว`);
 }
 
 function renderPlayers() {
@@ -312,6 +425,8 @@ function resetGame() {
   state.imposterIndex = -1;
   state.revealed = [];
   activeRevealIndex = null;
+  removedDefaultWords = {};
+  saveRemovedDefaultWords();
 
   elements.playerCount.value = state.playerCount;
   elements.categorySelect.value = state.categoryKey;
@@ -325,7 +440,58 @@ function resetGame() {
   elements.stageLabel.textContent = "ขั้นตอนที่ 1 จาก 3";
   elements.panelTitle.textContent = "ตั้งค่าเกม";
   elements.panelText.textContent = "เลือกจำนวนผู้เล่นและหมวดหมู่คำที่อยากเล่น";
+  setCustomWordMessage("คำที่เพิ่มหรือลบจะถูกเก็บไว้ในเบราว์เซอร์นี้");
   updateCategoryPreview();
+}
+
+function getWordsForCategory(categoryKey) {
+  const removedWords = new Set(removedDefaultWords[categoryKey] || []);
+  const defaultWords = categories[categoryKey].words
+    .filter((word) => !removedWords.has(normalizeWord(word)))
+    .map((word) => ({ word, source: "default" }));
+  const addedWords = (customWords[categoryKey] || []).map((word) => ({ word, source: "custom" }));
+  return [...defaultWords, ...addedWords];
+}
+
+function parseCustomWords(value) {
+  return value
+    .split(/[\n,]+/)
+    .map((word) => word.trim())
+    .filter(Boolean);
+}
+
+function normalizeWord(word) {
+  return word.trim().toLocaleLowerCase("th-TH");
+}
+
+function loadCustomWords() {
+  return loadStoredObject(customWordsKey);
+}
+
+function loadRemovedDefaultWords() {
+  return loadStoredObject(removedDefaultWordsKey);
+}
+
+function loadStoredObject(key) {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(key));
+    if (!parsed || typeof parsed !== "object") return {};
+    return parsed;
+  } catch {
+    return {};
+  }
+}
+
+function saveCustomWords() {
+  localStorage.setItem(customWordsKey, JSON.stringify(customWords));
+}
+
+function saveRemovedDefaultWords() {
+  localStorage.setItem(removedDefaultWordsKey, JSON.stringify(removedDefaultWords));
+}
+
+function setCustomWordMessage(message) {
+  elements.customWordMessage.textContent = message;
 }
 
 function pickRandom(items) {
