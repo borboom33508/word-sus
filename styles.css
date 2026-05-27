@@ -257,6 +257,16 @@ h2 {
   line-height: 1.15;
 }
 
+.secret-display .secondary-button {
+  width: max-content;
+  margin-top: 8px;
+}
+
+.secret-display strong.is-hidden-word {
+  color: var(--muted);
+  letter-spacing: 0;
+}
+
 .setup-section,
 .reveal-section {
   padding: 20px;
@@ -432,6 +442,11 @@ textarea {
   display: block;
   margin-top: 6px;
   font-size: 1.25rem;
+}
+
+.player-card.is-revealed .secondary-button {
+  background: #fff3d4;
+  color: #8a5c0c;
 }
 
 .finish-panel {

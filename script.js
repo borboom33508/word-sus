@@ -209,6 +209,7 @@ const elements = {
   panelText: document.querySelector("[data-panel-text]"),
   secretDisplay: document.querySelector("[data-secret-display]"),
   secretWord: document.querySelector("[data-secret-word]"),
+  toggleSecret: document.querySelector("[data-toggle-secret]"),
   playerGrid: document.querySelector("[data-player-grid]"),
   playerTemplate: document.querySelector("[data-player-template]"),
   revealProgress: document.querySelector("[data-reveal-progress]"),
@@ -224,6 +225,7 @@ const state = {
   playerCount: 4,
   categoryKey: "jobs",
   secretWord: "",
+  secretVisible: false,
   imposterIndex: -1,
   revealed: [],
 };
@@ -246,6 +248,7 @@ function init() {
   });
 
   elements.randomWord.addEventListener("click", startRound);
+  elements.toggleSecret.addEventListener("click", toggleSecretWord);
   elements.addWords.addEventListener("click", addCustomWords);
   elements.customWords.addEventListener("keydown", (event) => {
     if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) addCustomWords();
@@ -301,19 +304,33 @@ function startRound() {
   }
 
   state.secretWord = pickRandom(words);
+  state.secretVisible = false;
   state.imposterIndex = Math.floor(Math.random() * state.playerCount);
   state.revealed = Array.from({ length: state.playerCount }, () => false);
 
   elements.setupSection.classList.add("is-hidden");
   elements.revealSection.classList.remove("is-hidden");
   elements.secretDisplay.classList.add("is-visible");
-  elements.secretWord.textContent = state.secretWord;
+  updateSecretDisplay();
   elements.stageLabel.textContent = "ขั้นตอนที่ 2 จาก 3";
   elements.panelTitle.textContent = `หมวด ${categories[state.categoryKey].label}`;
   elements.panelText.textContent = "ส่งเครื่องให้ผู้เล่นแต่ละคนกดดูคำ ห้ามให้คนอื่นเห็นหน้าจอ";
 
   renderPlayers();
   updateProgress();
+}
+
+function toggleSecretWord() {
+  if (!state.secretWord) return;
+
+  state.secretVisible = !state.secretVisible;
+  updateSecretDisplay();
+}
+
+function updateSecretDisplay() {
+  elements.secretWord.textContent = state.secretVisible ? state.secretWord : "••••••";
+  elements.secretWord.classList.toggle("is-hidden-word", !state.secretVisible);
+  elements.toggleSecret.textContent = state.secretVisible ? "ซ่อนคำ" : "เปิดดูคำ";
 }
 
 function addCustomWords() {
@@ -369,6 +386,7 @@ function renderPlayers() {
   state.revealed.forEach((isRevealed, index) => {
     const node = elements.playerTemplate.content.firstElementChild.cloneNode(true);
     const button = node.querySelector("[data-reveal-button]");
+    node.classList.toggle("is-revealed", isRevealed);
     node.querySelector("[data-player-label]").textContent = `ผู้เล่น ${index + 1}`;
     node.querySelector("[data-player-status]").textContent = isRevealed ? "ดูแล้ว" : "ยังไม่ได้ดู";
     button.disabled = isRevealed;
@@ -422,6 +440,7 @@ function resetGame() {
   state.playerCount = 4;
   state.categoryKey = "jobs";
   state.secretWord = "";
+  state.secretVisible = false;
   state.imposterIndex = -1;
   state.revealed = [];
   activeRevealIndex = null;
@@ -437,6 +456,8 @@ function resetGame() {
   elements.modal.setAttribute("aria-hidden", "true");
   elements.secretDisplay.classList.remove("is-visible");
   elements.secretWord.textContent = "ยังไม่ได้สุ่ม";
+  elements.secretWord.classList.remove("is-hidden-word");
+  elements.toggleSecret.textContent = "เปิดดูคำ";
   elements.stageLabel.textContent = "ขั้นตอนที่ 1 จาก 3";
   elements.panelTitle.textContent = "ตั้งค่าเกม";
   elements.panelText.textContent = "เลือกจำนวนผู้เล่นและหมวดหมู่คำที่อยากเล่น";
