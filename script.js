@@ -522,7 +522,7 @@ function pickRandom(items) {
 function clampPlayerCount(value) {
   const parsed = Number.parseInt(value, 10);
   if (Number.isNaN(parsed)) return 2;
-  return Math.min(5, Math.max(2, parsed));
+  return Math.min(7, Math.max(2, parsed));
 }
 
 init();

@@ -14,13 +14,16 @@
       href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
+    <link rel="icon" type="image/png" href="assets/word-sus-icon.png" />
     <link rel="stylesheet" href="styles.css?v=20260528-1" />
   </head>
   <body>
     <div class="app-shell">
       <header class="topbar">
         <a class="brand" href="#game" aria-label="Imposter Word Game">
-          <span class="brand-mark">?</span>
+          <span class="brand-mark">
+            <img src="assets/word-sus-icon.png" alt="" />
+          </span>
           <span>Imposter Word</span>
         </a>
         <button class="ghost-button" type="button" data-reset>เริ่มใหม่</button>
@@ -32,8 +35,8 @@
             <p class="eyebrow">Party web game</p>
             <h1 id="hero-title">สุ่มคำลับ หา Imposter</h1>
             <p>
-              แอดมินเลือกจำนวนผู้เล่นและหมวดหมู่ จากนั้นสุ่มคำกลางหนึ่งคำ
-              แล้วส่งเครื่องให้ผู้เล่นแต่ละคนกดดูคำของตัวเองแบบลับๆ
+              เลือกจำนวนผู้เล่นและหมวดหมู่คำ จากนั้นสุ่มคำขึ้นมาหนึ่งคำ
+              แล้วส่งเครื่องให้ผู้เล่นแต่ละคนกดดูคำของตัวเองแบบลับ ๆ
             </p>
             <div class="role-deck" aria-hidden="true">
               <span class="role-card role-card-word">คำลับ</span>
@@ -63,7 +66,7 @@
               <input
                 type="number"
                 min="2"
-                max="5"
+                max="7"
                 value="4"
                 inputmode="numeric"
                 data-player-count
